@@ -181,7 +181,7 @@ export default function BusinessStep() {
       {/* Live Preview */}
       <div className="w-full lg:w-[400px] shrink-0 lg:mt-[76px] flex flex-col gap-4">
         <button
-          onClick={() => document.getElementById('business-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
+          onClick={handleSubmit(onSubmit)}
           disabled={!isValid}
           className="w-full h-12 bg-emerald-500 text-black rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:bg-white/10 disabled:text-white/40 disabled:cursor-not-allowed"
         >
