@@ -1,0 +1,925 @@
+TIMBERFLOW
+Timber Management System
+Product Requirements Document
+Version 1.0  ·  July 2024
+Confidential — Internal Use Only
+1. Executive Summary
+TimberFlow is a quotation-first, full-stack Sales and Operations SaaS platform purpose-built for timber suppliers and dealers in India. It replaces disconnected spreadsheets, WhatsApp quotes, and paper ledgers with a single integrated system covering the entire business lifecycle — from inquiry to dispatch to GST filing.
+The system is designed specifically for the Indian timber trade: CFT/CBM-based pricing, HSN code mapping, CGST/SGST/IGST split invoicing, e-Way bill integration, and GSTR-1/3B export — all built in from the ground up, not bolted on.
+Attribute
+Detail
+Product Name
+TimberFlow
+Version
+1.0
+Document Type
+Product Requirements Document (PRD)
+Target Market
+Timber suppliers, dealers, sawmills — India
+Tech Stack
+Next.js 14, Prisma ORM, PostgreSQL, TypeScript
+Deployment
+Supabase (dev) → Neon/Railway → AWS RDS Mumbai (prod)
+Document Date
+July 2024
+2. Problem Statement
+Indian timber suppliers currently operate with fragmented, error-prone workflows:
+Quotations are created manually on WhatsApp or paper, with no version control, no follow-up tracking, and no conversion pipeline to invoices.
+Inventory is managed in physical registers or basic Excel sheets with no real-time visibility into stock levels, low-stock alerts, or species-wise valuation.
+GST compliance is a major pain point — CGST/SGST vs IGST logic (intra-state vs inter-state), HSN code mapping for timber species, GSTR-1 preparation, and ITC reconciliation are all done manually and error-prone.
+Customer receivables are tracked informally — there is no aging analysis, no automated follow-up, and outstanding dues are often forgotten.
+There is no single view connecting a customer inquiry to quotation, order, dispatch, invoice, and payment — each step lives in a different place.
+3. Goals & Success Metrics
+3.1 Primary Goals
+Replace all paper/Excel/WhatsApp workflows for timber suppliers with a single web-based system.
+Automate GST calculation (CGST/SGST/IGST), invoice generation, and GSTR export.
+Provide real-time inventory visibility with species-level stock tracking and low-stock alerts.
+Give business owners a live financial dashboard: revenue, receivables, payables, and GST liability.
+3.2 Success Metrics
+Metric
+Target
+Timeline
+Quotation-to-invoice conversion time
+< 2 minutes
+At launch
+GST invoice generation time
+< 30 seconds
+At launch
+Inventory accuracy vs physical count
+> 98%
+3 months post-launch
+Time saved on monthly GST prep
+> 4 hours/month
+3 months post-launch
+User adoption (daily active)
+> 80% of registered users
+6 months post-launch
+4. User Personas
+4.1 Rajan — Business Owner / Proprietor
+Attribute
+Detail
+Role
+Owner of a mid-size timber trading business
+Goals
+Know daily revenue, GST liability, who owes money, stock position at a glance
+Pain points
+No single view of business health; GST filing is monthly chaos; loses track of dues
+Tech comfort
+Moderate — uses WhatsApp, basic Android apps, some Excel
+Key screens
+Dashboard, Reports & GST, Customer ledger
+4.2 Suresh — Sales / Quotation Manager
+Attribute
+Detail
+Role
+Handles customer inquiries, creates quotes, follows up on orders
+Goals
+Create accurate quotes fast, convert approved quotes to invoices in one click
+Pain points
+Manually recalculating GST on every quote; no visibility into stock before quoting
+Tech comfort
+High — comfortable with web apps and mobile
+Key screens
+Quotations, New Quote form, Orders & Dispatch
+4.3 Priya — Accounts / GST
+Attribute
+Detail
+Role
+Manages invoicing, receivables, GST filing, supplier payables
+Goals
+Accurate GST invoices, easy GSTR-1 export, customer payment tracking
+Pain points
+Manual CGST/SGST vs IGST calculation; reconciling ITC; chasing overdue payments
+Tech comfort
+Moderate — comfortable with Tally-like interfaces
+Key screens
+GST Invoices, Reports & GST, Customer ledger, Supplier payables
+5. Scope
+5.1 In Scope — Version 1.0
+Dashboard with KPIs (revenue, open quotes, pending dispatch, GST payable, receivables)
+Quotation module — create, edit, send, approve, reject, convert to invoice
+GST Invoice module — auto-calculated CGST/SGST/IGST, GSTR-1/3B export, PDF generation
+Orders & Dispatch — order confirmation, dispatch orders with vehicle/driver/e-Way bill
+Inventory — species-level stock register (CFT/CBM), purchase entries, low-stock alerts
+Customer management — GSTIN, outstanding, credit limit, invoice history, payment tracking
+Supplier management — payables, purchase invoice recording, ITC tracking
+Reports — sales report, stock report, receivables aging, GST summary, purchase report
+Multi-user access with role-based permissions (Owner, Sales, Accounts, Warehouse)
+5.2 Out of Scope — Version 1.0
+Mobile native app (iOS/Android) — web app is mobile-responsive, native app is v2
+Tally integration / direct GSTN portal filing
+Automated payment collection (UPI / payment gateway integration)
+Multi-branch / multi-company support
+Sawmill processing / manufacturing module
+6. Technology Stack
+Layer
+Technology
+Rationale
+Frontend
+Next.js 14 (App Router)
+SSR for SEO, RSC for performance, file-based routing
+Language
+TypeScript
+Type safety across frontend and backend; essential for financial data
+ORM
+Prisma ORM
+Type-safe DB queries, migrations, schema-first design
+Database
+PostgreSQL
+ACID compliance for financial transactions; Prisma first-class support
+Dev DB
+Supabase (free tier)
+Instant Postgres with dashboard, auth built-in, Indian region
+Prod DB
+Neon / AWS RDS Mumbai
+Serverless scale (Neon) or enterprise SLA (RDS)
+Auth
+NextAuth.js
+Role-based sessions, JWT, credential + Google OAuth
+Styling
+Tailwind CSS
+Utility-first, consistent design system
+PDF Gen
+Puppeteer / React-PDF
+Tax invoice PDF with proper GST format
+File Storage
+Supabase Storage / S3
+Invoice PDFs, documents
+Deployment
+Vercel (frontend) + Railway (backend/DB)
+Zero-config CI/CD for Next.js
+GST Export
+Custom JSON builder
+GSTR-1 JSON format per GSTN schema
+7. Database Schema
+All tables use PostgreSQL via Prisma. UUIDs as primary keys throughout. Soft deletes via deletedAt timestamp. All monetary values stored in paise (integer) to avoid floating-point errors.
+7.1 Core Tables
+Organisation
+Column
+Type
+Notes
+id
+UUID PK
+name
+String
+Business name
+gstin
+String(15)
+Validated format: 15-char GSTIN
+pan
+String(10)
+address
+String
+Registered address
+state
+String
+State code for CGST/SGST vs IGST logic
+createdAt
+DateTime
+User
+Column
+Type
+Notes
+id
+UUID PK
+orgId
+UUID FK
+→ Organisation
+name
+String
+email
+String UNIQUE
+role
+Enum
+OWNER | SALES | ACCOUNTS | WAREHOUSE
+passwordHash
+String
+bcrypt
+isActive
+Boolean
+Default true
+Customer
+Column
+Type
+Notes
+id
+UUID PK
+orgId
+UUID FK
+→ Organisation (multi-tenant)
+name
+String
+gstin
+String(15)
+Optional — unregistered dealers may not have GSTIN
+pan
+String(10)
+Optional
+phone
+String
+email
+String
+billingAddress
+String
+state
+String
+Used to determine CGST/SGST vs IGST
+creditLimit
+Integer
+In paise
+outstandingBalance
+Integer
+Computed; cached for performance
+deletedAt
+DateTime?
+Soft delete
+Supplier
+Column
+Type
+Notes
+id
+UUID PK
+orgId
+UUID FK
+name
+String
+gstin
+String(15)
+phone
+String
+species
+String[]
+Array of timber species they supply
+payableBalance
+Integer
+Cached; in paise
+deletedAt
+DateTime?
+Item (Product / Species)
+Column
+Type
+Notes
+id
+UUID PK
+orgId
+UUID FK
+name
+String
+e.g. Burma Teak
+species
+String
+Botanical / common name
+grade
+Enum
+PREMIUM | STANDARD | ECONOMY
+unit
+Enum
+CFT | CBM | NOS | KG
+hsnCode
+String
+e.g. 4407 for sawn timber
+gstRate
+Decimal
+12 | 18 | 28 (%)
+currentStock
+Decimal
+In base unit; updated on each transaction
+minStockLevel
+Decimal
+Triggers low-stock alert below this
+costPrice
+Integer
+Latest purchase price in paise per unit
+sellingPrice
+Integer
+Default selling price in paise per unit
+7.2 Sales Tables
+Quotation
+Column
+Type
+Notes
+id
+UUID PK
+orgId
+UUID FK
+quoteNumber
+String UNIQUE
+Auto-generated: QT-YYYY-NNNN
+customerId
+UUID FK
+→ Customer
+createdBy
+UUID FK
+→ User
+quoteDate
+Date
+validUntil
+Date
+status
+Enum
+DRAFT | SENT | APPROVED | REJECTED | CONVERTED
+subtotal
+Integer
+Paise; sum of line items before GST
+totalGst
+Integer
+Paise; total GST amount
+grandTotal
+Integer
+Paise; subtotal + totalGst
+notes
+String?
+Terms, delivery notes
+convertedToInvoiceId
+UUID?
+Set when converted
+QuotationItem
+Column
+Type
+Notes
+id
+UUID PK
+quotationId
+UUID FK
+→ Quotation
+itemId
+UUID FK
+→ Item
+description
+String
+Custom description override
+quantity
+Decimal
+In item unit
+unitPrice
+Integer
+Paise per unit at time of quote
+amount
+Integer
+quantity × unitPrice
+gstRate
+Decimal
+Snapshot at time of quote
+gstAmount
+Integer
+Computed GST
+lineTotal
+Integer
+amount + gstAmount
+sortOrder
+Integer
+Line ordering
+Invoice
+Column
+Type
+Notes
+id
+UUID PK
+orgId
+UUID FK
+invoiceNumber
+String UNIQUE
+INV-YYYY-NNNN
+quotationId
+UUID?
+Source quotation if converted
+customerId
+UUID FK
+invoiceDate
+Date
+dueDate
+Date
+placeOfSupply
+String
+State code — determines CGST/SGST vs IGST
+isInterState
+Boolean
+True → IGST; False → CGST+SGST
+subtotal
+Integer
+cgst
+Integer
+0 if inter-state
+sgst
+Integer
+0 if inter-state
+igst
+Integer
+0 if intra-state
+totalGst
+Integer
+cgst + sgst + igst
+grandTotal
+Integer
+paidAmount
+Integer
+Updated on each payment
+status
+Enum
+DRAFT | SENT | PARTIAL | PAID | OVERDUE | CANCELLED
+pdfUrl
+String?
+Stored PDF path
+7.3 Operations Tables
+Order
+Column
+Type
+Notes
+id
+UUID PK
+orgId
+UUID FK
+orderNumber
+String UNIQUE
+ORD-YYYY-NNNN
+invoiceId
+UUID FK
+→ Invoice
+customerId
+UUID FK
+status
+Enum
+NEW | CONFIRMED | PROCESSING | DISPATCHED | DELIVERED | CANCELLED
+deliveryAddress
+String
+expectedDelivery
+Date?
+DispatchOrder
+Column
+Type
+Notes
+id
+UUID PK
+orgId
+UUID FK
+doNumber
+String UNIQUE
+DO-YYYY-NNNN
+orderId
+UUID FK
+→ Order
+dispatchDate
+Date
+vehicleNumber
+String
+e.g. KA 01 AB 1234
+driverName
+String
+transporter
+String
+eWayBillNumber
+String?
+12-digit e-Way bill
+status
+Enum
+PENDING | LOADING | IN_TRANSIT | DELIVERED
+StockLedger
+Column
+Type
+Notes
+id
+UUID PK
+orgId
+UUID FK
+itemId
+UUID FK
+→ Item
+transactionType
+Enum
+PURCHASE | SALE | ADJUSTMENT | RETURN
+referenceId
+UUID?
+Invoice or PurchaseInvoice ID
+quantity
+Decimal
+Positive = in, Negative = out
+balanceAfter
+Decimal
+Running balance
+createdAt
+DateTime
+createdBy
+UUID FK
+→ User
+notes
+String?
+8. API Routes
+All routes are under /api/v1/. Authentication via NextAuth session token (Bearer). All responses are JSON. All monetary values returned in paise; frontend converts to rupees for display.
+8.1 Auth
+Method
+Endpoint
+Description
+Access
+POST
+/api/auth/signin
+Sign in with email + password
+Public
+POST
+/api/auth/signout
+Invalidate session
+Auth
+GET
+/api/auth/me
+Get current user + org
+Auth
+8.2 Quotations
+Method
+Endpoint
+Description
+Access
+GET
+/api/v1/quotations
+List all quotations (paginated, filterable)
+Auth
+POST
+/api/v1/quotations
+Create new quotation
+OWNER, SALES
+GET
+/api/v1/quotations/:id
+Get single quotation with line items
+Auth
+PUT
+/api/v1/quotations/:id
+Update quotation
+OWNER, SALES
+POST
+/api/v1/quotations/:id/send
+Mark as SENT (triggers email/WhatsApp)
+OWNER, SALES
+POST
+/api/v1/quotations/:id/convert
+Convert approved quotation to invoice
+OWNER, ACCOUNTS
+DELETE
+/api/v1/quotations/:id
+Soft delete
+OWNER
+8.3 Invoices
+Method
+Endpoint
+Description
+Access
+GET
+/api/v1/invoices
+List invoices with GST breakdown
+Auth
+POST
+/api/v1/invoices
+Create invoice manually
+OWNER, ACCOUNTS
+GET
+/api/v1/invoices/:id
+Invoice detail with line items
+Auth
+PUT
+/api/v1/invoices/:id
+Update invoice (only DRAFT)
+OWNER, ACCOUNTS
+POST
+/api/v1/invoices/:id/pdf
+Generate and store PDF
+Auth
+POST
+/api/v1/invoices/:id/payment
+Record payment against invoice
+OWNER, ACCOUNTS
+GET
+/api/v1/invoices/gstr1
+Export GSTR-1 JSON for a period
+OWNER, ACCOUNTS
+GET
+/api/v1/invoices/gstr3b
+Generate GSTR-3B summary
+OWNER, ACCOUNTS
+8.4 Inventory
+Method
+Endpoint
+Description
+Access
+GET
+/api/v1/items
+List all items with current stock
+Auth
+POST
+/api/v1/items
+Create new item/species
+OWNER
+PUT
+/api/v1/items/:id
+Update item details or pricing
+OWNER
+POST
+/api/v1/items/:id/adjust
+Manual stock adjustment with reason
+OWNER, WAREHOUSE
+GET
+/api/v1/items/:id/ledger
+Full stock movement history
+Auth
+GET
+/api/v1/items/low-stock
+Items below minimum stock level
+Auth
+8.5 Customers & Suppliers
+Method
+Endpoint
+Description
+Access
+GET
+/api/v1/customers
+List customers with outstanding balances
+Auth
+POST
+/api/v1/customers
+Create customer
+OWNER, SALES, ACCOUNTS
+GET
+/api/v1/customers/:id
+Customer detail + invoice history
+Auth
+GET
+/api/v1/customers/:id/ledger
+Full payment ledger
+Auth
+GET
+/api/v1/suppliers
+List suppliers with payables
+Auth
+POST
+/api/v1/suppliers
+Create supplier
+OWNER, ACCOUNTS
+POST
+/api/v1/suppliers/:id/purchase
+Record purchase invoice from supplier
+OWNER, ACCOUNTS
+9. Functional Requirements
+9.1 GST Engine
+This is the most critical business logic in the system. All GST calculations must be deterministic and auditable.
+Determine transaction type based on supplier state vs customer state:
+Same state (intra-state): CGST = rate/2, SGST = rate/2, IGST = 0
+Different state (inter-state): IGST = full rate, CGST = 0, SGST = 0
+GST rates by HSN: 4407 (sawn timber) = 12%; 4403 (logs) = 0%; 4409 (mouldings) = 18%. All rates configurable per item.
+Tax is calculated on each line item, then summed — never on the grand total directly.
+All tax amounts rounded to 2 decimal places using banker's rounding.
+GSTR-1 export must produce valid JSON per GSTN schema (B2B, B2C, CDNR, CDNUR invoice types).
+ITC (Input Tax Credit) from purchase invoices is tracked separately and shown in GSTR-3B summary.
+9.2 Quotation Lifecycle
+Status
+Allowed transitions
+Who can trigger
+DRAFT
+→ SENT
+OWNER, SALES
+SENT
+→ APPROVED, → REJECTED
+OWNER, SALES
+APPROVED
+→ CONVERTED (creates Invoice)
+OWNER, ACCOUNTS
+REJECTED
+→ DRAFT (revise)
+OWNER, SALES
+CONVERTED
+No further edits
+System
+9.3 Invoice Rules
+Invoices generated from quotations inherit all line items; editable only in DRAFT status.
+Once marked SENT, only payment recording is allowed — no line item edits.
+Invoice PDF must include: company GSTIN, customer GSTIN, HSN codes, tax rate, CGST/SGST/IGST amounts, grand total in words, e-Way bill number if applicable.
+Invoice number sequence: INV-[FY]-[NNNN] — e.g., INV-2425-0089. Resets each financial year (April 1).
+CANCELLED invoices generate a Credit Note automatically.
+9.4 Stock Management Rules
+Stock is decremented when a dispatch order is created (status: LOADING), not when invoice is raised.
+Stock is incremented when a purchase invoice is recorded against a supplier.
+All stock movements are recorded in StockLedger with reference ID for full traceability.
+Low-stock alert is triggered when currentStock < minStockLevel; visible on dashboard and items list.
+Negative stock is blocked by default; configurable override for OWNER role.
+9.5 Receivables & Payables
+Customer outstanding = sum of unpaid/partial invoices. Aging buckets: 0-30, 31-60, 61-90, 90+ days.
+Supplier payable = sum of purchase invoices where payment is pending.
+Partial payments are recorded against specific invoices with date, amount, and mode (cash/NEFT/UPI/cheque).
+Credit limit enforcement: system warns (not blocks) when a new invoice would breach credit limit.
+10. Non-Functional Requirements
+Category
+Requirement
+Performance
+Dashboard loads in < 2s on 4G. Quote creation < 500ms server response.
+Reliability
+99.5% uptime SLA. PostgreSQL with daily automated backups.
+Security
+HTTPS only. JWT session tokens. RBAC on all API routes. SQL injection prevention via Prisma parameterized queries.
+Data integrity
+All financial transactions in Postgres transactions (ACID). No direct DB writes outside API layer.
+Scalability
+Schema supports multi-tenant (orgId on all tables). Stateless Next.js API routes — horizontally scalable.
+Accessibility
+WCAG 2.1 AA compliance. Keyboard navigable. Works on Chrome Android (primary device of target users).
+Localization
+Indian number formatting (₹1,23,456). Financial year April–March. All dates in DD MMM YYYY format.
+Offline
+Quotes can be viewed offline using PWA cache. Creates are blocked offline with clear error message.
+11. Roles & Permissions
+Feature
+Owner
+Sales
+Accounts
+Warehouse
+Dashboard
+Full
+Full
+Full
+Stock only
+Create quotation
+Yes
+Yes
+No
+No
+Approve quotation
+Yes
+Yes
+No
+No
+Convert to invoice
+Yes
+No
+Yes
+No
+Create invoice
+Yes
+No
+Yes
+No
+Record payment
+Yes
+No
+Yes
+No
+GSTR export
+Yes
+No
+Yes
+No
+Add/edit items
+Yes
+No
+No
+Yes
+Stock adjustment
+Yes
+No
+No
+Yes
+Create dispatch
+Yes
+Yes
+No
+Yes
+Add customer
+Yes
+Yes
+Yes
+No
+Add supplier
+Yes
+No
+Yes
+No
+Record purchase
+Yes
+No
+Yes
+No
+User management
+Yes
+No
+No
+No
+Reports
+All
+Sales only
+All
+Stock only
+12. UI/UX Requirements
+12.1 Design Principles
+Speed first — every common action (create quote, find customer, check stock) reachable in ≤ 2 clicks from dashboard.
+Data density — show all relevant context on screen without requiring drilling into sub-pages. Tables over cards for lists.
+GST-aware — every amount shown has its tax breakdown visible without extra clicks.
+Mobile-responsive — primary entry device for field sales is Android phone on Chrome.
+12.2 Navigation Structure
+Section
+Pages
+Dashboard
+Overview KPIs, recent activity, low-stock alerts, overdue invoices
+Quotations
+List view, New/Edit quotation form, Quotation detail
+GST Invoices
+List view with GST breakdown, Invoice detail, PDF preview
+Orders & Dispatch
+Order list, Dispatch order form, Tracking view
+Stock & Inventory
+Items list with stock bars, Stock ledger, Purchase entry
+Customers
+Customer list, Customer detail with ledger
+Suppliers
+Supplier list, Purchase invoice form
+Reports & GST
+Report selector, GSTR-1, GSTR-3B, Sales report, Aging report
+Settings
+Organisation profile, Users & roles, Item master, GST configuration
+13. Development Roadmap
+Phase 1 — Foundation (Weeks 1–3)
+Project setup: Next.js 14, TypeScript, Tailwind, Prisma, Postgres (Supabase)
+Authentication: NextAuth.js with email/password, role-based middleware
+Database schema: all tables from Section 7, migrations, seed data
+Core UI shell: sidebar navigation, topbar, responsive layout
+Settings: organisation profile, user management, item master
+Phase 2 — Core Sales (Weeks 4–6)
+Customer & Supplier CRUD with GSTIN validation
+Item/species master with HSN codes and GST rates
+Quotation module: create, edit, status workflow, line item calculator
+GST engine: CGST/SGST vs IGST logic, per-line calculation, totals
+Invoice module: convert from quote, manual create, PDF generation
+Phase 3 — Operations & Inventory (Weeks 7–9)
+Orders module: confirmation, status tracking
+Dispatch orders: vehicle/driver/e-Way bill form, status updates
+Inventory: stock register, purchase entries, StockLedger triggers
+Low-stock alerts: dashboard widget + background check on every sale
+Payment recording: partial payments, receivables aging
+Phase 4 — Reports & GST (Weeks 10–11)
+Dashboard KPIs: revenue, receivables, payables, GST liability
+Sales report with filters (date range, customer, item, salesperson)
+GSTR-1 JSON export per GSTN specification
+GSTR-3B summary with ITC reconciliation
+Stock movement report, receivables aging, purchase report
+Phase 5 — Polish & Launch (Week 12)
+End-to-end testing: full quotation → invoice → dispatch → payment flow
+GST calculation audit: verify CGST/SGST/IGST against manual calculations
+Performance optimisation: DB indexes, query analysis, Lighthouse audit
+Production deployment: Vercel + Neon Postgres, environment configuration
+User onboarding flow: org setup wizard, item import from Excel
+14. Open Questions & Decisions
+#
+Question
+Options
+Status
+1
+WhatsApp quote sharing
+Twilio Business API vs manual PDF download
+Open
+2
+e-Way bill generation
+NIC API integration vs manual entry
+Deferred to v1.1
+3
+Payment gateway
+Razorpay vs manual recording only
+Deferred to v1.1
+4
+GSTN direct filing
+API integration vs JSON export only
+JSON export for v1.0
+5
+Multi-branch
+Single org for v1.0; multi-branch in v2.0
+Decided
+6
+Mobile app
+React Native v2.0; PWA for v1.0
+Decided
+7
+Tally export
+CSV format compatible with Tally import
+Open
+15. Appendix — GST Reference
+15.1 HSN Codes for Timber
+HSN Code
+Description
+GST Rate
+4403
+Wood in the rough (logs)
+0%
+4407
+Wood sawn or chipped lengthwise (sawn timber)
+12%
+4408
+Sheets for veneering, plywood
+12%
+4409
+Wood (mouldings, profiles)
+18%
+4418
+Builders' joinery (doors, windows, frames)
+18%
+4421
+Other articles of wood (packing cases, etc.)
+12%
+15.2 CGST/SGST vs IGST Decision Logic
+The place of supply rules under GST determine whether a transaction is intra-state or inter-state:
+Supplier state = Customer's billing/shipping state → Intra-state → CGST + SGST
+Supplier state ≠ Customer's billing/shipping state → Inter-state → IGST only
+Exports → Zero-rated → IGST at 0% (LUT) or with refund claim
+Use customer's state code (stored on Customer record) against org's state code (stored on Organisation) to determine automatically on every transaction.
+End of Document
+TimberFlow PRD v1.0  ·  Confidential  ·  July 2024
