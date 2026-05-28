@@ -29,7 +29,7 @@ const BUSINESS_TYPES = [
 export default function BusinessStep() {
   const { data, updateData, nextStep } = useOnboarding();
   
-  const { register, handleSubmit, watch, formState: { errors, isValid } } = useForm<BusinessData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors, isValid } } = useForm<BusinessData>({
     resolver: zodResolver(businessSchema),
     defaultValues: data.business,
     mode: 'onChange'
@@ -116,13 +116,7 @@ export default function BusinessStep() {
                   register('state').onChange(e);
                   const stateObj = INDIAN_STATES.find(s => s.name === e.target.value);
                   if (stateObj) {
-                    // Hacky way to update stateCode when state changes in RHFs
-                    const event = new Event('input', { bubbles: true });
-                    const input = document.getElementById('stateCodeInput') as HTMLInputElement;
-                    if(input) {
-                      input.value = stateObj.code;
-                      input.dispatchEvent(event);
-                    }
+                    setValue('stateCode', stateObj.code);
                   }
                 }}
                 className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl h-12 px-4 focus:border-emerald-500 focus:outline-none transition-colors appearance-none"
@@ -135,7 +129,6 @@ export default function BusinessStep() {
             <div className="space-y-2">
               <label className="text-xs font-bold text-white/60 uppercase tracking-wider">State Code</label>
               <input 
-                id="stateCodeInput"
                 {...register('stateCode')}
                 readOnly
                 className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl h-12 px-4 text-white/50 focus:outline-none"
@@ -181,7 +174,7 @@ export default function BusinessStep() {
       {/* Live Preview */}
       <div className="w-full lg:w-[400px] shrink-0 lg:mt-[76px] flex flex-col gap-4">
         <button
-          onClick={handleSubmit(onSubmit)}
+          onClick={() => handleSubmit(onSubmit)()}
           disabled={!isValid}
           className="w-full h-12 bg-emerald-500 text-black rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:bg-white/10 disabled:text-white/40 disabled:cursor-not-allowed"
         >
