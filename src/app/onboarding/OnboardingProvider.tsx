@@ -75,21 +75,13 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     setIsLoading(true);
     try {
       if (saveDataFunc) {
-        const success = await saveDataFunc();
-        if (!success) return;
+        await saveDataFunc();
       }
       
       // Update completion progress
       if (!completedSteps.includes(currentStep)) {
         setCompletedSteps(prev => [...prev, currentStep]);
       }
-      
-      // Save progress to DB
-      await fetch('/api/v1/onboarding/progress', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step: currentStep + 1 })
-      });
 
       const next = STEPS.find(s => s.id === currentStep + 1);
       if (next) {
