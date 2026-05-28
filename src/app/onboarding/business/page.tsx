@@ -1,11 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { businessSchema, BusinessData } from '../../../lib/onboarding';
 import { useOnboarding } from '../OnboardingProvider';
-import { StepFooter } from '../components/StepFooter';
 
 const INDIAN_STATES = [
   { code: '29', name: 'Karnataka' },
@@ -27,7 +26,7 @@ const BUSINESS_TYPES = [
 ];
 
 export default function BusinessStep() {
-  const { data, updateData, nextStep } = useOnboarding();
+  const { data, updateData, nextStep, setFooter } = useOnboarding();
   
   const { register, handleSubmit, watch, formState: { errors, isValid } } = useForm<BusinessData>({
     resolver: zodResolver(businessSchema),
@@ -53,6 +52,15 @@ export default function BusinessStep() {
       }
     });
   };
+
+  const onContinue = useCallback(() => {
+    document.getElementById('business-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+  }, []);
+
+  useEffect(() => {
+    setFooter({ onContinue, disableContinue: !isValid });
+    return () => setFooter(null);
+  }, [onContinue, isValid, setFooter]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 p-4 md:p-10 max-w-7xl mx-auto">
@@ -193,11 +201,6 @@ export default function BusinessStep() {
           </div>
         </div>
       </div>
-
-      <StepFooter 
-        onContinue={() => document.getElementById('business-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))} 
-        disableContinue={!isValid}
-      />
     </div>
   );
 }

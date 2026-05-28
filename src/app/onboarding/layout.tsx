@@ -1,7 +1,16 @@
+'use client';
+
 import React from 'react';
-import { OnboardingProvider } from './OnboardingProvider';
+import { OnboardingProvider, useOnboarding } from './OnboardingProvider';
 import { StepSidebar } from './components/StepSidebar';
 import { ProgressBar } from './components/ProgressBar';
+import { StepFooter } from './components/StepFooter';
+
+function FooterRenderer() {
+  const { footer } = useOnboarding();
+  if (!footer) return null;
+  return <StepFooter {...footer} />;
+}
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -55,11 +64,12 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
             </button>
           </div>
 
-          <main className="flex-1 overflow-y-auto pb-28 md:pb-0" role="main" aria-label="Onboarding Step">
+          <main className="flex-1 overflow-y-auto" role="main" aria-label="Onboarding Step">
             {children}
           </main>
         </div>
       </div>
+      <FooterRenderer />
     </OnboardingProvider>
   );
 }

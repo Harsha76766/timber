@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useOnboarding } from '../OnboardingProvider';
-import { StepFooter } from '../components/StepFooter';
 import { UploadCloud, Plus, Download, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { CustomerData, customerSchema } from '../../../lib/onboarding';
@@ -18,7 +17,7 @@ const createEmptyCustomer = (): CustomerData & { id: string } => ({
 });
 
 export default function CustomersStep() {
-  const { data, updateData, nextStep } = useOnboarding();
+  const { data, updateData, nextStep, setFooter } = useOnboarding();
   const [customers, setCustomers] = useState<(CustomerData & { id: string })[]>(
     data.customers?.length > 0 ? data.customers : [createEmptyCustomer()]
   );
@@ -75,6 +74,15 @@ export default function CustomersStep() {
       }
     });
   };
+
+  const onContinue = useCallback(() => {
+    onSubmit();
+  }, []);
+
+  useEffect(() => {
+    setFooter({ onContinue });
+    return () => setFooter(null);
+  }, [onContinue, setFooter]);
 
   return (
     <div className="p-4 md:p-10 max-w-5xl mx-auto">
@@ -172,7 +180,6 @@ export default function CustomersStep() {
         <Plus size={18} /> Add another customer
       </button>
 
-      <StepFooter onContinue={onSubmit} />
     </div>
   );
 }

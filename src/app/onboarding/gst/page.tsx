@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gstSchema, GstData } from '../../../lib/onboarding';
 import { useOnboarding } from '../OnboardingProvider';
-import { StepFooter } from '../components/StepFooter';
 import { Info, CheckCircle2, XCircle } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function GstStep() {
-  const { data, updateData, nextStep } = useOnboarding();
+  const { data, updateData, nextStep, setFooter } = useOnboarding();
   const [gstinStatus, setGstinStatus] = useState<'empty' | 'invalid' | 'valid' | 'partial'>('empty');
   
   const { register, handleSubmit, watch, setValue, formState: { errors, isValid } } = useForm<GstData>({
@@ -68,6 +67,17 @@ export default function GstStep() {
       }
     });
   };
+
+  const onContinue = useCallback(() => {
+    document.getElementById('gst-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+  }, []);
+
+  const disableContinue = !isValid || gstinStatus === 'invalid' || gstinStatus === 'partial';
+
+  useEffect(() => {
+    setFooter({ onContinue, disableContinue });
+    return () => setFooter(null);
+  }, [onContinue, disableContinue, setFooter]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 p-4 md:p-10 max-w-7xl mx-auto">
@@ -214,11 +224,6 @@ export default function GstStep() {
           <p className="text-xs text-white/40 italic">Note: You can edit HSN and GST rate per item in the next step.</p>
         </div>
       </div>
-
-      <StepFooter 
-        onContinue={() => document.getElementById('gst-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))} 
-        disableContinue={!isValid || gstinStatus === 'invalid' || gstinStatus === 'partial'}
-      />
     </div>
   );
 }

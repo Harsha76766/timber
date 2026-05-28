@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useOnboarding } from '../OnboardingProvider';
-import { StepFooter } from '../components/StepFooter';
 import { Plus, Trash2, Shield, User as UserIcon } from 'lucide-react';
 import { TeamMemberData } from '../../../lib/onboarding';
 
 export default function TeamStep() {
-  const { data, updateData, nextStep } = useOnboarding();
+  const { data, updateData, nextStep, setFooter } = useOnboarding();
   const [team, setTeam] = useState<TeamMemberData[]>(
     data.team?.length > 0 ? data.team : [{ emailOrPhone: '', role: 'Staff' }]
   );
@@ -40,6 +39,15 @@ export default function TeamStep() {
       }
     });
   };
+
+  const onContinue = useCallback(() => {
+    onSubmit();
+  }, []);
+
+  useEffect(() => {
+    setFooter({ onContinue });
+    return () => setFooter(null);
+  }, [onContinue, setFooter]);
 
   return (
     <div className="p-4 md:p-10 max-w-3xl mx-auto">
@@ -108,7 +116,6 @@ export default function TeamStep() {
         <Plus size={18} /> Invite another member
       </button>
 
-      <StepFooter onContinue={onSubmit} />
     </div>
   );
 }

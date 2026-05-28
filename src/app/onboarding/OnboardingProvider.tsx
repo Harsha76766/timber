@@ -11,6 +11,13 @@ export type OnboardingData = {
   team: any[];
 };
 
+export type FooterConfig = {
+  onContinue: () => void;
+  isContinuing?: boolean;
+  hint?: string;
+  disableContinue?: boolean;
+};
+
 type OnboardingContextType = {
   currentStep: number;
   completedSteps: number[];
@@ -20,6 +27,8 @@ type OnboardingContextType = {
   prevStep: () => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  footer: FooterConfig | null;
+  setFooter: (config: FooterConfig | null) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | null>(null);
@@ -38,6 +47,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  
+  const [footer, setFooter] = useState<FooterConfig | null>(null);
   
   const [data, setData] = useState<OnboardingData>({
     business: {},
@@ -105,7 +116,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       nextStep,
       prevStep,
       isLoading,
-      setIsLoading
+      setIsLoading,
+      footer,
+      setFooter
     }}>
       {children}
     </OnboardingContext.Provider>
