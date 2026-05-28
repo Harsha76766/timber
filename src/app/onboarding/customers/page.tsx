@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useOnboarding } from '../OnboardingProvider';
-import { UploadCloud, Plus, Download, Trash2 } from 'lucide-react';
+import { UploadCloud, Plus, Download, Trash2, ArrowRight, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { CustomerData, customerSchema } from '../../../lib/onboarding';
 
@@ -17,7 +17,7 @@ const createEmptyCustomer = (): CustomerData & { id: string } => ({
 });
 
 export default function CustomersStep() {
-  const { data, updateData, nextStep, setFooter } = useOnboarding();
+  const { data, updateData, nextStep, isLoading } = useOnboarding();
   const [customers, setCustomers] = useState<(CustomerData & { id: string })[]>(
     data.customers?.length > 0 ? data.customers : [createEmptyCustomer()]
   );
@@ -74,15 +74,6 @@ export default function CustomersStep() {
       }
     });
   };
-
-  const onContinue = useCallback(() => {
-    onSubmit();
-  }, []);
-
-  useEffect(() => {
-    setFooter({ onContinue });
-    return () => setFooter(null);
-  }, [onContinue, setFooter]);
 
   return (
     <div className="p-4 md:p-10 max-w-5xl mx-auto">
@@ -180,6 +171,13 @@ export default function CustomersStep() {
         <Plus size={18} /> Add another customer
       </button>
 
+      <button
+        onClick={onSubmit}
+        disabled={isLoading}
+        className="mt-6 w-full h-14 bg-emerald-500 text-black rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:bg-white/10 disabled:text-white/40 disabled:cursor-not-allowed"
+      >
+        {isLoading ? <Loader2 size={16} className="animate-spin" /> : <>Continue <ArrowRight size={16} /></>}
+      </button>
     </div>
   );
 }

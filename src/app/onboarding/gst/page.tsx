@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gstSchema, GstData } from '../../../lib/onboarding';
 import { useOnboarding } from '../OnboardingProvider';
-import { Info, CheckCircle2, XCircle } from 'lucide-react';
+import { Info, CheckCircle2, XCircle, ArrowRight, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function GstStep() {
-  const { data, updateData, nextStep, setFooter } = useOnboarding();
+  const { data, updateData, nextStep, isLoading } = useOnboarding();
   const [gstinStatus, setGstinStatus] = useState<'empty' | 'invalid' | 'valid' | 'partial'>('empty');
   
   const { register, handleSubmit, watch, setValue, formState: { errors, isValid } } = useForm<GstData>({
@@ -68,16 +68,7 @@ export default function GstStep() {
     });
   };
 
-  const onContinue = useCallback(() => {
-    document.getElementById('gst-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-  }, []);
-
   const disableContinue = !isValid || gstinStatus === 'invalid' || gstinStatus === 'partial';
-
-  useEffect(() => {
-    setFooter({ onContinue, disableContinue });
-    return () => setFooter(null);
-  }, [onContinue, disableContinue, setFooter]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 p-4 md:p-10 max-w-7xl mx-auto">
@@ -195,6 +186,14 @@ export default function GstStep() {
             </div>
           </div>
         </form>
+
+        <button
+          onClick={() => handleSubmit(onSubmit)()}
+          disabled={disableContinue || isLoading}
+          className="w-full h-14 bg-emerald-500 text-black rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:bg-white/10 disabled:text-white/40 disabled:cursor-not-allowed"
+        >
+          {isLoading ? <Loader2 size={16} className="animate-spin" /> : <>Continue <ArrowRight size={16} /></>}
+        </button>
       </div>
 
       {/* Pre-loaded HSN Codes Panel */}

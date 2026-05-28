@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { 
   DndContext, 
   closestCenter,
@@ -19,7 +19,7 @@ import { useOnboarding } from '../OnboardingProvider';
 import { InventoryItemData, inventoryItemSchema } from '../../../lib/onboarding';
 import { ItemCard } from './components/ItemCard';
 import { SummaryPanel } from './components/SummaryPanel';
-import { Plus, UploadCloud, Download } from 'lucide-react';
+import { Plus, UploadCloud, Download, ArrowRight, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 // Ensure each item has a unique string ID for dnd-kit
@@ -40,7 +40,7 @@ const createEmptyItem = (): DraggableItem => ({
 });
 
 export default function InventoryStep() {
-  const { data, updateData, nextStep, setFooter } = useOnboarding();
+  const { data, updateData, nextStep, isLoading } = useOnboarding();
   
   const [items, setItems] = useState<DraggableItem[]>(
     data.inventory.length > 0 
@@ -177,15 +177,6 @@ export default function InventoryStep() {
     });
   };
 
-  const onContinue = useCallback(() => {
-    onSubmit();
-  }, []);
-
-  useEffect(() => {
-    setFooter({ onContinue });
-    return () => setFooter(null);
-  }, [onContinue, setFooter]);
-
   return (
     <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 p-4 md:p-10 max-w-[1400px] mx-auto">
       <div className="flex-1 space-y-8">
@@ -236,6 +227,14 @@ export default function InventoryStep() {
           className="w-full h-14 border-2 border-dashed border-white/10 rounded-xl text-white/40 font-bold hover:border-white/20 hover:text-white flex items-center justify-center gap-2 transition-colors"
         >
           <Plus size={18} /> Add another item
+        </button>
+
+        <button
+          onClick={onSubmit}
+          disabled={isLoading}
+          className="w-full h-14 bg-emerald-500 text-black rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:bg-white/10 disabled:text-white/40 disabled:cursor-not-allowed"
+        >
+          {isLoading ? <Loader2 size={16} className="animate-spin" /> : <>Continue <ArrowRight size={16} /></>}
         </button>
       </div>
 

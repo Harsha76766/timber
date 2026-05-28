@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useOnboarding } from '../OnboardingProvider';
-import { Plus, Trash2, Shield, User as UserIcon } from 'lucide-react';
+import { Plus, Trash2, Shield, User as UserIcon, ArrowRight, Loader2 } from 'lucide-react';
 import { TeamMemberData } from '../../../lib/onboarding';
 
 export default function TeamStep() {
-  const { data, updateData, nextStep, setFooter } = useOnboarding();
+  const { data, updateData, nextStep, isLoading } = useOnboarding();
   const [team, setTeam] = useState<TeamMemberData[]>(
     data.team?.length > 0 ? data.team : [{ emailOrPhone: '', role: 'Staff' }]
   );
@@ -39,15 +39,6 @@ export default function TeamStep() {
       }
     });
   };
-
-  const onContinue = useCallback(() => {
-    onSubmit();
-  }, []);
-
-  useEffect(() => {
-    setFooter({ onContinue });
-    return () => setFooter(null);
-  }, [onContinue, setFooter]);
 
   return (
     <div className="p-4 md:p-10 max-w-3xl mx-auto">
@@ -116,6 +107,13 @@ export default function TeamStep() {
         <Plus size={18} /> Invite another member
       </button>
 
+      <button
+        onClick={onSubmit}
+        disabled={isLoading}
+        className="mt-6 w-full h-14 bg-emerald-500 text-black rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:bg-white/10 disabled:text-white/40 disabled:cursor-not-allowed"
+      >
+        {isLoading ? <Loader2 size={16} className="animate-spin" /> : <>Continue <ArrowRight size={16} /></>}
+      </button>
     </div>
   );
 }
