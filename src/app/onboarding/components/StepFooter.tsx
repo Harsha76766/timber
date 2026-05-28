@@ -17,16 +17,16 @@ export function StepFooter({ onContinue, isContinuing, hint, disableContinue }: 
   const loading = isContinuing;
 
   return (
-    <div className="fixed md:absolute bottom-0 left-0 w-full bg-[#0d0d0d]/90 backdrop-blur-md border-t border-white/10 p-4 md:px-10 md:py-6 flex flex-col md:flex-row md:items-center justify-between gap-4 z-40">
-      <div className="flex items-center gap-4 order-2 md:order-1">
+    <div className="fixed md:absolute bottom-0 left-0 w-full bg-[#0d0d0d]/90 backdrop-blur-md border-t border-white/10 px-4 py-3 md:px-10 md:py-6 flex items-center justify-between gap-3 z-40">
+      <div className="flex items-center gap-3">
         {currentStep > 1 && (
           <button 
             onClick={prevStep}
             disabled={loading}
-            className="h-12 px-4 rounded-xl font-bold text-white/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2"
+            className="h-10 md:h-12 px-3 md:px-4 rounded-xl font-bold text-xs md:text-sm text-white/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1.5"
           >
-            <ArrowLeft size={16} />
-            Back
+            <ArrowLeft size={14} />
+            <span className="hidden sm:inline">Back</span>
           </button>
         )}
         {hint && (
@@ -39,18 +39,18 @@ export function StepFooter({ onContinue, isContinuing, hint, disableContinue }: 
         disabled={disableContinue || loading}
         aria-disabled={disableContinue || loading}
         className={clsx(
-          "h-12 px-8 rounded-xl font-black flex items-center justify-center gap-2 transition-all order-1 md:order-2 w-full md:w-auto",
+          "h-10 md:h-12 px-5 md:px-8 rounded-xl font-black text-xs md:text-sm flex items-center justify-center gap-2 transition-all whitespace-nowrap",
           (disableContinue || loading) 
             ? "bg-white/10 text-white/40 cursor-not-allowed border border-white/10" 
             : "bg-emerald-500 text-black hover:bg-emerald-400 active:scale-95"
         )}
       >
         {loading ? (
-          <Loader2 size={18} className="animate-spin" />
+          <Loader2 size={16} className="animate-spin" />
         ) : (
           <>
             {currentStep === 6 ? 'Complete Setup' : 'Continue'}
-            {currentStep < 6 && <ArrowRight size={18} />}
+            {currentStep < 6 && <ArrowRight size={16} />}
           </>
         )}
       </button>
