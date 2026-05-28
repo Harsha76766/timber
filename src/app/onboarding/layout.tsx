@@ -8,12 +8,12 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
     <OnboardingProvider>
       <div className="flex flex-col md:flex-row min-h-screen bg-[#0a0a0a] text-white font-sans">
         {/* Mobile top progress bar */}
-        <div className="md:hidden sticky top-0 z-50">
+        <div className="md:hidden sticky top-0 z-50 shrink-0">
           <ProgressBar />
         </div>
 
         {/* Desktop sidebar */}
-        <div className="hidden md:flex flex-col w-[220px] shrink-0 border-r border-white/10 p-6 sticky top-0 h-screen">
+        <div className="hidden md:flex flex-col w-[220px] shrink-0 border-r border-white/10 p-6 sticky top-0 h-svh">
           <div className="mb-10">
             <h1 className="text-xl font-black tracking-tight text-emerald-400">TimberFlow</h1>
             <p className="text-xs text-white/50 mt-1 uppercase tracking-widest font-bold">Business Setup</p>
@@ -33,7 +33,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
         </div>
 
         {/* Main content area */}
-        <div className="flex-1 flex flex-col min-h-screen relative">
+        <div className="flex-1 flex flex-col relative">
           {/* Desktop Topbar */}
           <div className="hidden md:flex justify-between items-center px-10 py-6 border-b border-white/10">
             <div>
@@ -48,7 +48,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
           </div>
           
           {/* Mobile Topbar */}
-          <div className="md:hidden flex justify-between items-center px-4 py-4 border-b border-white/10">
+          <div className="md:hidden flex justify-between items-center px-4 py-4 border-b border-white/10 shrink-0">
             <h2 className="text-sm font-bold text-emerald-400">TimberFlow Setup</h2>
             <button className="text-xs font-bold text-white/40 hover:text-white transition-colors">
               Skip &rarr;

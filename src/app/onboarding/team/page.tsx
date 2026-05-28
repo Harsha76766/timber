@@ -42,7 +42,7 @@ export default function TeamStep() {
   };
 
   return (
-    <div className="p-4 md:p-10 max-w-3xl mx-auto pb-24">
+    <div className="p-4 md:p-10 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-black mb-2">Invite your team</h1>
         <p className="text-white/50 text-sm">Add partners, accountants, or sales staff. You can also do this later.</p>

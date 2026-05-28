@@ -77,7 +77,7 @@ export default function CustomersStep() {
   };
 
   return (
-    <div className="p-4 md:p-10 max-w-5xl mx-auto pb-24">
+    <div className="p-4 md:p-10 max-w-5xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-black mb-2">Import Customers</h1>
