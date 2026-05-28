@@ -41,7 +41,7 @@ export function StepFooter({ onContinue, isContinuing, hint, disableContinue }: 
         className={clsx(
           "h-12 px-8 rounded-xl font-black flex items-center justify-center gap-2 transition-all order-1 md:order-2 w-full md:w-auto",
           (disableContinue || loading) 
-            ? "bg-white/5 text-white/20 cursor-not-allowed" 
+            ? "bg-white/10 text-white/40 cursor-not-allowed border border-white/10" 
             : "bg-emerald-500 text-black hover:bg-emerald-400 active:scale-95"
         )}
       >
