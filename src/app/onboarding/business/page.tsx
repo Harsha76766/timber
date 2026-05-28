@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useCallback } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { businessSchema, BusinessData } from '../../../lib/onboarding';
 import { useOnboarding } from '../OnboardingProvider';
+import { ArrowRight } from 'lucide-react';
 
 const INDIAN_STATES = [
   { code: '29', name: 'Karnataka' },
@@ -26,7 +27,7 @@ const BUSINESS_TYPES = [
 ];
 
 export default function BusinessStep() {
-  const { data, updateData, nextStep, setFooter } = useOnboarding();
+  const { data, updateData, nextStep } = useOnboarding();
   
   const { register, handleSubmit, watch, formState: { errors, isValid } } = useForm<BusinessData>({
     resolver: zodResolver(businessSchema),
@@ -52,15 +53,6 @@ export default function BusinessStep() {
       }
     });
   };
-
-  const onContinue = useCallback(() => {
-    document.getElementById('business-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-  }, []);
-
-  useEffect(() => {
-    setFooter({ onContinue, disableContinue: !isValid });
-    return () => setFooter(null);
-  }, [onContinue, isValid, setFooter]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 p-4 md:p-10 max-w-7xl mx-auto">
@@ -187,7 +179,14 @@ export default function BusinessStep() {
       </div>
 
       {/* Live Preview */}
-      <div className="w-full lg:w-[400px] shrink-0 lg:mt-[76px]">
+      <div className="w-full lg:w-[400px] shrink-0 lg:mt-[76px] flex flex-col gap-4">
+        <button
+          onClick={() => document.getElementById('business-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
+          disabled={!isValid}
+          className="w-full h-12 bg-emerald-500 text-black rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all disabled:bg-white/10 disabled:text-white/40 disabled:cursor-not-allowed"
+        >
+          Continue <ArrowRight size={16} />
+        </button>
         <div className="bg-[#111] border border-white/10 rounded-2xl p-6 sticky top-24">
           <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-4">Invoice Header Preview</p>
           <div className="border border-white/5 bg-[#1a1a1a] rounded-xl p-5 font-mono text-sm">
