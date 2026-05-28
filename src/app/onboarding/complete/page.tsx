@@ -10,19 +10,21 @@ export default function CompleteStep() {
   const router = useRouter();
 
   const handleFinish = async () => {
-    // Save completion to DB
-    await fetch('/api/v1/onboarding/progress', {
+    const res = await fetch('/api/v1/onboarding/progress', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ step: 6, completed: true })
     });
-    
-    // Set localStorage flag for welcome tip
+
+    if (!res.ok) {
+      console.error('Failed to save onboarding progress');
+      return;
+    }
+
     if (typeof window !== 'undefined') {
       localStorage.setItem('tf_show_welcome_tip', 'true');
     }
 
-    // Redirect to dashboard
     router.push('/dashboard');
   };
 

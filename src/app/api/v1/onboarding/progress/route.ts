@@ -15,11 +15,17 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { step, completed } = body;
     
-    if (userData?.orgId) {
-      await supabase.from('Organisation').update({ 
-         onboardingStep: step, 
-         onboardingCompleted: completed || step >= 6 
-      }).eq('id', userData.orgId);
+    if (!userData?.orgId) {
+      return NextResponse.json({ error: 'Organisation not found' }, { status: 400 });
+    }
+
+    const { error: updateError } = await supabase.from('Organisation').update({
+      onboardingStep: step,
+      onboardingCompleted: completed || step >= 6
+    }).eq('id', userData.orgId);
+
+    if (updateError) {
+      return NextResponse.json({ error: 'Failed to update progress' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, step });
