@@ -64,7 +64,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
             </button>
           </div>
 
-          <main className="flex-1 overflow-y-auto" role="main" aria-label="Onboarding Step">
+          <main className="flex-1 overflow-y-auto pb-36 md:pb-24" role="main" aria-label="Onboarding Step">
             {children}
           </main>
         </div>

@@ -17,7 +17,7 @@ export function StepFooter({ onContinue, isContinuing, hint, disableContinue }: 
   const loading = isContinuing;
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-[#0d0d0d]/90 backdrop-blur-md border-t border-white/10 px-4 py-3 md:px-10 md:py-6 flex items-center justify-between gap-3 z-40">
+    <div className="fixed bottom-0 left-0 w-full bg-[#0d0d0d]/90 backdrop-blur-md border-t border-white/10 px-4 pb-[env(safe-area-inset-bottom)] py-3 md:px-10 md:py-6 flex items-center justify-between gap-3 z-40">
       <div className="flex items-center gap-3">
         {currentStep > 1 && (
           <button 
