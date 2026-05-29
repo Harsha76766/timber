@@ -1,31 +1,32 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
 import { useOnboarding } from '../OnboardingProvider';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 
 export default function CompleteStep() {
   const { data } = useOnboarding();
-  const router = useRouter();
 
   const handleFinish = async () => {
-    const res = await fetch('/api/v1/onboarding/progress', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ step: 6, completed: true })
-    });
+    try {
+      const res = await fetch('/api/v1/onboarding/progress', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ step: 6, completed: true })
+      });
 
-    if (!res.ok) {
-      console.error('Failed to save onboarding progress');
-      return;
+      if (!res.ok) {
+        console.error('Failed to save onboarding progress');
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('tf_show_welcome_tip', 'true');
+      }
+    } catch (err) {
+      console.error('Failed to complete onboarding:', err);
     }
 
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('tf_show_welcome_tip', 'true');
-    }
-
-    router.push('/dashboard');
+    window.location.href = '/dashboard';
   };
 
   return (
